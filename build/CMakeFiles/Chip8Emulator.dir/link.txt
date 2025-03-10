@@ -1,1 +1,0 @@
-/usr/bin/clang -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/Chip8Emulator.dir/src/main.c.o CMakeFiles/Chip8Emulator.dir/src/chip8.c.o -o Chip8Emulator  -Wl,-rpath,/Users/braden/Documents/Programming/C/chip8-emulator/build/external/SDL external/SDL/libSDL3.0.dylib
