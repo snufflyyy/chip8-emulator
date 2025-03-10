@@ -1,0 +1,8 @@
+/Users/braden/Documents/Programming/C/chip8-emulator/build/CMakeFiles/Chip8Emulator.dir
+/Users/braden/Documents/Programming/C/chip8-emulator/build/CMakeFiles/edit_cache.dir
+/Users/braden/Documents/Programming/C/chip8-emulator/build/CMakeFiles/rebuild_cache.dir
+/Users/braden/Documents/Programming/C/chip8-emulator/build/external/SDL/CMakeFiles/SDL3-shared.dir
+/Users/braden/Documents/Programming/C/chip8-emulator/build/external/SDL/CMakeFiles/SDL3_test.dir
+/Users/braden/Documents/Programming/C/chip8-emulator/build/external/SDL/CMakeFiles/SDL_uclibc.dir
+/Users/braden/Documents/Programming/C/chip8-emulator/build/external/SDL/CMakeFiles/edit_cache.dir
+/Users/braden/Documents/Programming/C/chip8-emulator/build/external/SDL/CMakeFiles/rebuild_cache.dir
