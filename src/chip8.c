@@ -114,8 +114,7 @@ void chip8_update(Chip8* chip8) {
         uint16_t instruction = fetch_instruction(chip8);
         printf("%04x - ", chip8->program_counter);
 
-        uint8_t opcode = (instruction >> 12) & 0xF;
-        switch (opcode) {
+        switch ((instruction >> 12) & 0xF) {
             case 0x0:
                 switch (instruction & 0x00FF) {
                     case 0xE0: instruction_00E0(chip8); break;
@@ -168,6 +167,11 @@ void chip8_update(Chip8* chip8) {
                 break;
         }
     }
+}
+
+void chip8_update_timers(Chip8* chip8) {
+    if (chip8->delay_timer > 0) { chip8->delay_timer--; }
+    if (chip8->sound_timer > 0) { chip8->sound_timer--; }
 }
 
 static void instruction_00E0(Chip8* chip8) {
@@ -228,64 +232,61 @@ static void instruction_8xy0(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     chip8->registers[Vx] = chip8->registers[Vy];
 }
 
-static void instruction_8xy1(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // good
+static void instruction_8xy1(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("OR V%02x, V%02x\n", Vx, Vy);
     chip8->registers[Vx] |= chip8->registers[Vy];
 }
 
-static void instruction_8xy2(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // good
+static void instruction_8xy2(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("AND V%02x, V%02x\n", Vx, Vy);
     chip8->registers[Vx] &= chip8->registers[Vy];
 }
 
-static void instruction_8xy3(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // good
+static void instruction_8xy3(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("XOR V%02x, V%02x\n", Vx, Vy);
     chip8->registers[Vx] ^= chip8->registers[Vy];
 }
 
-static void instruction_8xy4(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // bad
+static void instruction_8xy4(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("ADD V%02x, V%02x\n", Vx, Vy);
 
-    chip8->registers[0xF] = 0;
     uint16_t sum = chip8->registers[Vx] + chip8->registers[Vy];
-    if (sum > 0xFF) {
-        chip8->registers[0xF] = 1;
-    }
-    chip8->registers[Vx] = (sum >> 8) & 0x0F;
+    chip8->registers[0xF] = 0;
+    if (sum > 0xFF) { chip8->registers[0xF] = 1; }
+    chip8->registers[Vx] = sum & 0xFF;
 }
 
-static void instruction_8xy5(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // bad
+static void instruction_8xy5(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SUB V%02x, V%02x\n", Vx, Vy);
 
     chip8->registers[0xF] = 0;
-    if (chip8->registers[Vx] >= chip8->registers[Vy]) {
+    if (chip8->registers[Vx] > chip8->registers[Vy]) {
         chip8->registers[0xF] = 1;
     }
     chip8->registers[Vx] -= chip8->registers[Vy];
 }
 
-static void instruction_8xy6(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // bad
+static void instruction_8xy6(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SHR V%02x, V%02x\n", Vx, Vy);
 
     chip8->registers[0xF] = chip8->registers[Vx] & 0x1;
     chip8->registers[Vx] >>= 1;
 }
 
-static void instruction_8xy7(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // bad
+static void instruction_8xy7(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SUBN V%02x, V%02x\n", Vx, Vy);
 
     chip8->registers[0xF] = 0;
-    if (chip8->registers[Vy] >= chip8->registers[Vx]) {
+    if (chip8->registers[Vy] > chip8->registers[Vx]) {
         chip8->registers[0xF] = 1;
     }
     chip8->registers[Vx] = chip8->registers[Vy] - chip8->registers[Vx];
 }
 
-static void instruction_8xyE(Chip8* chip8, uint8_t Vx, uint8_t Vy) { // bad
+static void instruction_8xyE(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SHL V%02x, V%02x\n", Vx, Vy);
 
-    chip8->registers[0xF] = chip8->registers[Vx] & 0x7;
-
+    chip8->registers[0xF] = (chip8->registers[Vx] & 0x80) >> 7;
     chip8->registers[Vx] <<= 1;
 }
 
@@ -318,9 +319,9 @@ static void instruction_Dxyn(Chip8* chip8, uint8_t Vx, uint8_t Vy, uint8_t size)
     uint8_t y_position = chip8->registers[Vy] % 32;
     chip8->registers[0xF] = 0;
 
-    for (int y = 0; y < size; y++) {
-        for (int x = 0; x < 8; x++) {
-            int index = (y_position + y) * 64 + (x_position + x);
+    for (uint8_t y = 0; y < size; y++) {
+        for (uint8_t x = 0; x < 8; x++) {
+            uint16_t index = (y_position + y) * 64 + (x_position + x);
 
             if ((chip8->memory[chip8->address_register + y] >> (7 - x)) & 1) {
                 if (chip8->display[index] > 0x0) {
@@ -412,7 +413,7 @@ static void instruction_Fx07(Chip8* chip8, uint8_t Vx) {
 
 static void instruction_Fx0A(Chip8* chip8, uint8_t Vx) {
     printf("LD V%02x\n", Vx);
-    for (int i = 0; i < 16; i++) {
+    for (uint8_t i = 0; i < 16; i++) {
         if (chip8->keypad[i] == 1) {
             chip8->registers[Vx] = get_keypad_value(i);
             return;

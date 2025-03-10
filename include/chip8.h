@@ -27,3 +27,4 @@ typedef struct Chip8 {
 Chip8 chip8_create();
 void chip8_load_rom(Chip8* chip8, char* file);
 void chip8_update(Chip8* chip8);
+void chip8_update_timers(Chip8* chip8);

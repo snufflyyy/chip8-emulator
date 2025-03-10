@@ -47,11 +47,23 @@ int main() {
     SDL_Texture* chip8_display_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_STREAMING, 64, 32);
     SDL_SetTextureScaleMode(chip8_display_texture, SDL_SCALEMODE_NEAREST);
 
+    // the chip8 itself
     Chip8 chip8 = chip8_create();
+
+    // used to limit the application to 60hz
+    uint64_t last_time = SDL_GetPerformanceCounter();
 
     SDL_Event event;
     bool running = true;
     while (running) {
+        uint64_t current_time = SDL_GetPerformanceCounter();
+        double delta_time = ((double) current_time / 1000.0) - ((double) last_time / 1000.0);
+        if (delta_time < 1000.0 / 60.0) {
+            continue;
+        }
+
+        last_time = current_time;
+
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 // window events
@@ -77,9 +89,12 @@ int main() {
         }
 
         // update
-        for (int i = 0; i < 1; i++) { // temp for loop
+        for (int i = 0; i < 12; i++) { // temp for loop
             chip8_update(&chip8);
         }
+
+        // update the timers
+        chip8_update_timers(&chip8);
 
         // update the display texture
         if (chip8.update_display) {
