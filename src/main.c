@@ -6,14 +6,13 @@
 
 #include <SDL3/SDL.h>
 
-#include "SDL3/SDL_scancode.h"
 #include "chip8.h"
 
 // what number to scale the chip8's resolution (64 x 32) by
 #define SCALE 15
 #define INSTRUCTIONS_PER_CYCLE 11
 
-int main() {
+int main(int argc, char* argv[]) {
     // set random seed
     srand(time(0));
 
@@ -53,6 +52,12 @@ int main() {
     // used to limit the application to 60 fps
     uint64_t last_time = SDL_GetPerformanceCounter();
 
+    // launch rom through command line argument
+    if (argc > 1) {
+        chip8_load_rom(&chip8, argv[1]);
+        SDL_SetWindowTitle(window, "Chip 8 Emulator");
+    }
+
     SDL_Event event;
     bool running = true;
     while (running) {
@@ -61,7 +66,7 @@ int main() {
                 // window events
                 case SDL_EVENT_QUIT: running = false; break;
                 case SDL_EVENT_DROP_FILE:
-                    chip8_load_rom(&chip8, (char*) event.drop.data);
+                    chip8_load_rom(&chip8, event.drop.data);
                     SDL_SetWindowTitle(window, "Chip 8 Emulator");
                     break;
 

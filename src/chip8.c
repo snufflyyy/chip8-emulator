@@ -47,7 +47,7 @@ static void instruction_Fx65(Chip8* chip8, uint8_t Vx);
 Chip8 chip8_create() {
     Chip8 chip8 = {0};
 
-    uint8_t font_data[5 * 16] = {0xF0, 0x90, 0x90, 0x90, 0xF0,  // 0
+    uint8_t font[5 * 16] = {0xF0, 0x90, 0x90, 0x90, 0xF0,  // 0
                                  0x20, 0x60, 0x20, 0x20, 0x70,  // 1
                                  0xF0, 0x10, 0xF0, 0x80, 0xF0,  // 2
                                  0xF0, 0x10, 0xF0, 0x10, 0xF0,  // 3
@@ -65,14 +65,14 @@ Chip8 chip8_create() {
                                  0xF0, 0x80, 0xF0, 0x80, 0x80}; // F
 
     // load font into memory
-    for (int i = 0; i < sizeof(font_data); i++) {
-        chip8.memory[i] = font_data[i];
+    for (uint8_t i = 0; i < (uint8_t) sizeof(font); i++) {
+        chip8.memory[i] = font[i];
     }
 
     return chip8;
 }
 
-void chip8_load_rom(Chip8* chip8, char* file) {
+void chip8_load_rom(Chip8* chip8, const char* file) {
     // reset the chip8
     *chip8 = chip8_create();
 
@@ -102,10 +102,7 @@ void chip8_load_rom(Chip8* chip8, char* file) {
 
 // fetch -> decode -> execute
 uint16_t fetch_instruction(Chip8* chip8) {
-    uint16_t instruction;
-
-    instruction = chip8->memory[chip8->program_counter] << 8;
-    instruction |= chip8->memory[chip8->program_counter + 1];
+    uint16_t instruction = (chip8->memory[chip8->program_counter] << 8) | chip8->memory[chip8->program_counter + 1];
     chip8->program_counter += 2;
 
     return instruction;
@@ -177,10 +174,70 @@ void chip8_update(Chip8* chip8) {
     }
 }
 
+// this function assumes it will be called 60 times per second
 void chip8_update_timers(Chip8* chip8) {
-
     if (chip8->delay_timer > 0) { chip8->delay_timer--; }
     if (chip8->sound_timer > 0) { chip8->sound_timer--; }
+}
+
+static uint8_t get_keypad_value(int index) {
+    uint8_t value;
+
+    switch (index) {
+        case 0:  value = 0x1; break;
+        case 1:  value = 0x2; break;
+        case 2:  value = 0x3; break;
+        case 3:  value = 0xC; break;
+
+        case 4:  value = 0x4; break;
+        case 5:  value = 0x5; break;
+        case 6:  value = 0x6; break;
+        case 7:  value = 0xD; break;
+
+        case 8:  value = 0x7; break;
+        case 9:  value = 0x8; break;
+        case 10: value = 0x9; break;
+        case 11: value = 0xE; break;
+
+        case 12: value = 0xA; break;
+        case 13: value = 0x0; break;
+        case 14: value = 0xB; break;
+        case 15: value = 0xF; break;
+
+        default: value = 0x0; break;
+    }
+
+    return value;
+}
+
+static uint8_t get_keypad_index(uint8_t value) {
+    uint8_t index;
+
+    switch (value) {
+        case 0x1: index = 0;  break;
+        case 0x2: index = 1;  break;
+        case 0x3: index = 2;  break;
+        case 0xC: index = 3;  break;
+
+        case 0x4: index = 4;  break;
+        case 0x5: index = 5;  break;
+        case 0x6: index = 6;  break;
+        case 0xD: index = 7;  break;
+
+        case 0x7: index = 8;  break;
+        case 0x8: index = 9;  break;
+        case 0x9: index = 10; break;
+        case 0xE: index = 11; break;
+
+        case 0xA: index = 12; break;
+        case 0x0: index = 13; break;
+        case 0xB: index = 14; break;
+        case 0xF: index = 15; break;
+
+        default:  index = 0; break;
+    }
+
+    return index;
 }
 
 static void instruction_00E0(Chip8* chip8) {
@@ -319,7 +376,6 @@ static void instruction_Dxyn(Chip8* chip8, uint8_t Vx, uint8_t Vy, uint8_t size)
 
     uint8_t x_position = chip8->registers[Vx] % 64;
     uint8_t y_position = chip8->registers[Vy] % 32;
-    chip8->registers[0xF] = 0;
 
     for (uint8_t y = 0; y < size; y++) {
         for (uint8_t x = 0; x < 8; x++) {
@@ -331,62 +387,6 @@ static void instruction_Dxyn(Chip8* chip8, uint8_t Vx, uint8_t Vy, uint8_t size)
             }
         }
     }
-}
-
-static uint8_t get_keypad_value(int index) {
-    uint8_t value;
-
-    switch (index) {
-        case 0:  value = 0x1; break;
-        case 1:  value = 0x2; break;
-        case 2:  value = 0x3; break;
-        case 3:  value = 0xC; break;
-
-        case 4:  value = 0x4; break;
-        case 5:  value = 0x5; break;
-        case 6:  value = 0x6; break;
-        case 7:  value = 0xD; break;
-
-        case 8:  value = 0x7; break;
-        case 9:  value = 0x8; break;
-        case 10: value = 0x9; break;
-        case 11: value = 0xE; break;
-
-        case 12: value = 0xA; break;
-        case 13: value = 0x0; break;
-        case 14: value = 0xB; break;
-        case 15: value = 0xF; break;
-    }
-
-    return value;
-}
-
-static int get_keypad_index(uint8_t value) {
-    int index;
-
-    switch (value) {
-        case 0x1: index = 0;  break;
-        case 0x2: index = 1;  break;
-        case 0x3: index = 2;  break;
-        case 0xC: index = 3;  break;
-
-        case 0x4: index = 4;  break;
-        case 0x5: index = 5;  break;
-        case 0x6: index = 6;  break;
-        case 0xD: index = 7;  break;
-
-        case 0x7: index = 8;  break;
-        case 0x8: index = 9;  break;
-        case 0x9: index = 10; break;
-        case 0xE: index = 11; break;
-
-        case 0xA: index = 12; break;
-        case 0x0: index = 13; break;
-        case 0xB: index = 14; break;
-        case 0xF: index = 15; break;
-    }
-
-    return index;
 }
 
 static void instruction_Ex9E(Chip8* chip8, uint8_t Vx) {
@@ -436,7 +436,6 @@ static void instruction_Fx1E(Chip8* chip8, uint8_t Vx) {
 
 static void instruction_Fx29(Chip8* chip8, uint8_t Vx) {
     printf("LD F, V%X\n", Vx);
-
     chip8->address_register = chip8->registers[Vx] * 5;
 }
 
