@@ -6,12 +6,12 @@
 
 #include <SDL3/SDL.h>
 
-#include "SDL3/SDL_events.h"
 #include "SDL3/SDL_scancode.h"
 #include "chip8.h"
 
-// what number to scale the chip8's resolution (64x32) by
+// what number to scale the chip8's resolution (64 x 32) by
 #define SCALE 15
+#define INSTRUCTIONS_PER_CYCLE 11
 
 int main() {
     // set random seed
@@ -24,7 +24,7 @@ int main() {
     }
 
     // create window
-    SDL_Window* window = SDL_CreateWindow("Chip 8 Emulator", 64 * SCALE, 32 * SCALE, 0);
+    SDL_Window* window = SDL_CreateWindow("Chip 8 Emulator - Drag and Drop a Rom", 64 * SCALE, 32 * SCALE, 0);
     if (!window) {
         printf("ERROR: Failed to create SDL window!\n");
         return -2;
@@ -37,7 +37,7 @@ int main() {
         return -3;
     }
 
-    // keyboard keys
+    // keyboard keys used for the chip8's keypad
     int keyboard_scancodes[16] = {SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3, SDL_SCANCODE_4,
                                   SDL_SCANCODE_Q, SDL_SCANCODE_W, SDL_SCANCODE_E, SDL_SCANCODE_R,
                                   SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_F,
@@ -50,46 +50,39 @@ int main() {
     // the chip8 itself
     Chip8 chip8 = chip8_create();
 
-    // used to limit the application to 60hz
+    // used to limit the application to 60 fps
     uint64_t last_time = SDL_GetPerformanceCounter();
 
     SDL_Event event;
     bool running = true;
     while (running) {
-        uint64_t current_time = SDL_GetPerformanceCounter();
-        double delta_time = ((double) current_time / 1000.0) - ((double) last_time / 1000.0);
-        if (delta_time < 1000.0 / 60.0) {
-            continue;
-        }
-
-        last_time = current_time;
-
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 // window events
                 case SDL_EVENT_QUIT: running = false; break;
-                case SDL_EVENT_DROP_FILE: chip8_load_rom(&chip8, (char*) event.drop.data); break;
+                case SDL_EVENT_DROP_FILE:
+                    chip8_load_rom(&chip8, (char*) event.drop.data);
+                    SDL_SetWindowTitle(window, "Chip 8 Emulator");
+                    break;
 
                 // keyboard events
                 case SDL_EVENT_KEY_DOWN:
+                case SDL_EVENT_KEY_UP: {
+                    uint8_t down = (event.type == SDL_EVENT_KEY_DOWN) ? 1 : 0;
                     for (int i = 0; i < 16; i++) {
-                        if (event.key.scancode == keyboard_scancodes[i]) {
-                            chip8.keypad[i] = 1;
-                        }
+                        if (event.key.scancode == keyboard_scancodes[i]) { chip8.keypad[i] = down; }
                     }
-                    break;
-                case SDL_EVENT_KEY_UP:
-                    for (int i = 0; i < 16; i++) {
-                        if (event.key.scancode == keyboard_scancodes[i]) {
-                            chip8.keypad[i] = 0;
-                        }
-                    }
-                    break;
+                } break;
             }
         }
 
-        // update
-        for (int i = 0; i < 12; i++) { // temp for loop
+        uint64_t current_time = SDL_GetPerformanceCounter();
+        double delta_time = (double) (current_time - last_time) / (double) SDL_GetPerformanceFrequency();
+        if (delta_time < 1.0 / 60.0) { continue; }
+        last_time = current_time;
+
+        // run the instructions
+        for (int i = 0; i < INSTRUCTIONS_PER_CYCLE; i++) {
             chip8_update(&chip8);
         }
 
@@ -97,10 +90,7 @@ int main() {
         chip8_update_timers(&chip8);
 
         // update the display texture
-        if (chip8.update_display) {
-            SDL_UpdateTexture(chip8_display_texture, NULL, chip8.display, 64 * sizeof(uint8_t));
-            chip8.update_display = false;
-        }
+        SDL_UpdateTexture(chip8_display_texture, NULL, chip8.display, 64 * sizeof(uint8_t));
 
         // render
         SDL_RenderClear(renderer);
@@ -109,6 +99,7 @@ int main() {
     }
 
     SDL_DestroyWindow(window);
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
     SDL_Quit();
 
     return 0;

@@ -1,11 +1,10 @@
 #pragma once
 
-#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct Chip8 {
     uint8_t memory[4096];
-    bool program_loaded;
+    uint8_t program_loaded;
 
     uint8_t registers[16];
     uint16_t program_counter;
@@ -19,7 +18,6 @@ typedef struct Chip8 {
     uint8_t stack_pointer;
 
     uint8_t display[64 * 32];
-    bool update_display;
 
     uint8_t keypad[16];
 } Chip8;
