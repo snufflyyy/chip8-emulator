@@ -261,40 +261,34 @@ static void instruction_8xy4(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
 
     uint16_t sum = chip8->registers[Vx] + chip8->registers[Vy];
     chip8->registers[0xF] = (sum > 0xFF) ? 1 : 0;
-    chip8->registers[Vx] = sum & 0xFF;
+    chip8->registers[Vx] = (sum & 0x00FF);
 }
 
 static void instruction_8xy5(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SUB V%X, V%X\n", Vx, Vy);
 
-    chip8->registers[0xF] = 0;
-    if (chip8->registers[Vx] > chip8->registers[Vy]) {
-        chip8->registers[0xF] = 1;
-    }
+    chip8->registers[0xF] = (chip8->registers[Vx] > chip8->registers[Vy]) ? 1 : 0;
     chip8->registers[Vx] -= chip8->registers[Vy];
 }
 
 static void instruction_8xy6(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SHR V%X, V%X\n", Vx, Vy);
 
-    chip8->registers[0xF] = chip8->registers[Vx] & 0x1;
+    chip8->registers[0xF] = (chip8->registers[Vx] & 1);
     chip8->registers[Vx] >>= 1;
 }
 
 static void instruction_8xy7(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SUBN V%X, V%X\n", Vx, Vy);
 
-    chip8->registers[0xF] = 0;
-    if (chip8->registers[Vy] >= chip8->registers[Vx]) {
-        chip8->registers[0xF] = 1;
-    }
+    chip8->registers[0xF] = (chip8->registers[Vy] > chip8->registers[Vx]) ? 1 : 0;
     chip8->registers[Vx] = chip8->registers[Vy] - chip8->registers[Vx];
 }
 
 static void instruction_8xyE(Chip8* chip8, uint8_t Vx, uint8_t Vy) {
     printf("SHL V%X, V%X\n", Vx, Vy);
 
-    chip8->registers[0xF] = (chip8->registers[Vx] & 0x80) >> 7;
+    chip8->registers[0xF] = (chip8->registers[Vx] & 0x80) ? 1 : 0;
     chip8->registers[Vx] <<= 1;
 }
 
@@ -332,10 +326,7 @@ static void instruction_Dxyn(Chip8* chip8, uint8_t Vx, uint8_t Vy, uint8_t size)
             uint16_t index = (y_position + y) * 64 + (x_position + x);
 
             if ((chip8->memory[chip8->address_register + y] >> (7 - x)) & 1) {
-                if (chip8->display[index] > 0x0) {
-                    chip8->registers[0xF] = 1;
-                }
-
+                chip8->registers[0xF] = (chip8->display[index]) ? 1 : 0;
                 chip8->display[index] ^= 0xFF;
             }
         }
