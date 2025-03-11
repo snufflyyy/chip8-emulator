@@ -58,23 +58,23 @@ You can drag and drop a new rom at anytime to begin playing a new game.
 The CHIP-8 originally had a 16-key hexadecimal keypad which looks like this:
 
 ```
-  **-----------------**
-  **| 1 | 2 | 3 | C |**
-  **| 4 | 5 | 6 | D |**
-  **| 7 | 8 | 9 | E |**
-  **| A | 0 | B | F |**
-  **-----------------**
+-----------------
+| 1 | 2 | 3 | C |
+| 4 | 5 | 6 | D |
+| 7 | 8 | 9 | E |
+| A | 0 | B | F |
+-----------------
 ```
 
 This emulator follows in the foot steps of many others like it and uses the left half of your keyboard as a replacement, which looks like this:
 
 ```
-  **-----------------**
-  **| 1 | 2 | 3 | 4 |**
-  **| Q | W | E | R |**
-  **| A | S | D | F |**
-  **| Z | X | C | V |**
-  **-----------------**
+-----------------
+| 1 | 2 | 3 | 4 |
+| Q | W | E | R |
+| A | S | D | F |
+| Z | X | C | V |
+-----------------
 ```
 
 ## Acknowledgements
