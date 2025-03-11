@@ -1,6 +1,6 @@
 # CHIP-8 Emulator
 
-Another CHIP-8 Emulator written in C using SDL with a professional ass readme
+Another CHIP-8 Emulator written in C using SDL
 
 ## Screenshots
 
@@ -31,7 +31,7 @@ mkdir build
 cd build
 ```
 
-Finally, configure the cmake project and build it:
+Finally, configure the CMake project and build it:
 
 ```bash
 cmake ..
@@ -66,7 +66,7 @@ The CHIP-8 originally had a 16-key hexadecimal keypad which looks like this:
 -----------------
 ```
 
-This emulator follows in the foot steps of many others like it and uses the left half of your keyboard as a replacement, which looks like this:
+This emulator follows in the foot steps of many other emulators like it and uses the left half of your keyboard as a replacement, which looks like this:
 
 ```
 -----------------
