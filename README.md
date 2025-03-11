@@ -1,6 +1,6 @@
 # CHIP-8 Emulator
 
-Another CHIP-8 Emulator written in C using SDL
+Another CHIP-8 Emulator written in C using SDL with a professional ass readme
 
 ## Screenshots
 
